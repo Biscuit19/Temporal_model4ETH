@@ -2,11 +2,9 @@
 
 ## 测试模型
 
+进入**ConvLSTM/GNN/Data_generate**文件夹下：
 
-
-进入ConvLSTM/GNN/Data_generate文件夹下：
-
-1. 数据重组：使用中山大学数据集（数据集为图结构，ZSU.py中指明了格式），执行Account_generate_ZSU.py 生成all_account_data_zsu.pkl和all_tnx_data_zsu.pkl
+1. 数据重组：使用**中山大学数据集**（数据集为图结构，ZSU.py中指明了格式），执行**Account_generate_ZSU.py** 生成all_account_data_zsu.pkl和all_tnx_data_zsu.pkl
 
    - all_account_data.pkl格式：
 
@@ -42,18 +40,20 @@
 
    - 此时需注意生成的要完全一致，比如一定要长度为6的tran，不然后面生成特征的时候，就生成不了长度为6的tran了，这很麻烦，我们要做的是尽量让所有数据集变成同一种格式进入我们的模型
 
-2. 图构建：执行whole_graph_convert生成whole_graph_data.pkl图文件和address_to_index.pkl文件
+2. 图构建：运行**whole_graph_convert.py**生成whole_graph_data.pkl图文件和address_to_index.pkl文件
 
-3. 子图提取和特征生成：执行part_graph_convert.py生成训练集train+test_data_embed_0.pkl
+3. 子图提取和特征生成：运行**part_graph_convert.py**生成测试集test_data_embed_0.pkl
 
    - 导入了Data_Restruct.py，Feature_for_node.py，AutoEncoder_ConvLSTM.py，train_test_split.py，AECL_model.pth
 
    - 此时需要根据数据集交易的跨度调整时间窗口大小和值。在Feature_for_node.py文件中调整
 
-4. 训练或测试模型：执行GAT.py
+4. 训练或测试模型：运行**GAT.py**
 
-   - 测试：test_gat_model()
+   - 测试：test_gat_model(test_data, gat_model_path)
    - 训练：train_gat_model()
 
-   
 
+
+
+- 由于内存问题，步骤需要分布执行，否则可能导致内存不足报错。
