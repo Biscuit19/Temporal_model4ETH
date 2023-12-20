@@ -6,6 +6,6 @@
 !.gitignore
 
 # 不忽略.py和.pth文件
-#!*.py
+!*.py
 !*.pth
 !.md
