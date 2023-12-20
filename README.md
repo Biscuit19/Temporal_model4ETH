@@ -38,7 +38,7 @@
      [amount, block_timestamp, timewindow, from_address, to_address]
      ```
 
-   - 此时需注意生成的要完全一致，比如一定要长度为6的tran，不然后面生成特征的时候，就生成不了长度为6的tran了，这很麻烦，我们要做的是尽量让所有数据集变成同一种格式进入我们的模型
+   - 重组的数据格式需完全一致，否则无法运行后续的特征生成代码。
 
 2. 图构建：运行**whole_graph_convert.py**生成whole_graph_data.pkl图文件和address_to_index.pkl文件
 
