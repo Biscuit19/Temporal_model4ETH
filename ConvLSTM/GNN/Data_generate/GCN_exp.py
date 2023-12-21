@@ -40,20 +40,22 @@ def graph_view(graph):
 
 
 class GCNWithClassifier(torch.nn.Module):
-	def __init__(self, in_dim, hidden_dim, num_classes):
+	def __init__(self, in_dim, hidden_dim,num_classes=2):
 		super(GCNWithClassifier, self).__init__()
 		# 定义两层GCN卷积层
 		# 将当前节点及其邻居的原始特征 聚合为当前节点的隐藏特征。
 		self.conv1 = GCNConv(in_dim, hidden_dim)
 		# 将当前节点及其邻居的 经过第一层卷积层转换后的隐藏特征 聚合为当前节点的隐藏特征。
 		# 每一层GCN都在将邻居的信息 层数越高 当前节点越能融合高阶的邻居节点特征
-		self.conv2 = GCNConv(hidden_dim, hidden_dim)
-		# self.conv2 = GCNConv(hidden_dim, 1)
+		self.conv2 = GCNConv(hidden_dim, num_classes)
+		# self.conv2 = GCNConv(hidden_dim, hidden_dim)
+
 
 		# 定义分类器
 		self.classifier = nn.Sequential(
 			# 全连接层，将输入的维度从hidden_dim转换为1 二分类任务
-			nn.Linear(hidden_dim, 1),
+			nn.Linear(num_classes, 1),
+			# nn.Linear(hidden_dim, 1),
 
 			# 使用Sigmoid函数将输出压缩到[0, 1]的范围内。
 			nn.Sigmoid()
@@ -69,23 +71,25 @@ class GCNWithClassifier(torch.nn.Module):
 		x = F.dropout(x, training=self.training)  # 应用dropout，减少过拟合
 		# 第二层GCN卷积层：进一步聚合经过第一层处理的特征
 		x = self.conv2(x, edge_index)
+		# 使用ReLU激活函数是为了引入非线性。非线性激活函数使得网络能够学习和建模更复杂的模式。
+		# relu的作用是将所有负值置为0。
 		x = F.relu(x)  # 再次使用ReLU激活函数
 		# 分类器：将隐藏特征映射到二分类输出
 		x = self.classifier(x)
 		return x
 
 def train_gcn_model(train_data, test_data, save_model=False):
-	num_epochs = 300
-	lr = 0.01
+	num_epochs = 500
+	lr = 0.1
 
 	print('--------------------Train Dataset-------------------------')
 	# 假设 graph_view 是一个用于显示图信息的函数
 	graph_view(train_data)
 	print('--------------------Test Dataset-------------------------')
 	graph_view(test_data)
-
+	hidden_dim=4
 	# 初始化模型
-	model = GCNWithClassifier(in_dim=train_data.num_node_features, hidden_dim=4, num_classes=1)
+	model = GCNWithClassifier(in_dim=train_data.num_node_features, hidden_dim=hidden_dim)
 	print(f'node_features size: {train_data.num_node_features}')
 	criterion = nn.BCELoss()
 	optimizer = Adam(model.parameters(), lr=lr)

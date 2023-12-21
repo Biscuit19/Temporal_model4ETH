@@ -138,6 +138,7 @@ def graph_split(test=False):
 		dump_pkl(f'train+test_data_embed_{i}.pkl', (train_sub_graph, test_sub_graph))
 
 		static_feature_num = 17
+		# 截取的是前static_feature_num个特征(列）
 		data.x = data.x[:, :static_feature_num]
 		# data.x = torch.cat((data.x, torch.zeros(data.x.shape[0],1)), dim=1)
 

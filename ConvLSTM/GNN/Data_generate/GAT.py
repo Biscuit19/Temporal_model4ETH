@@ -58,7 +58,6 @@ class GATWithClassifier(torch.nn.Module):
 		x, edge_index, edge_attr = data.x, data.edge_index, data.edge_attr
 		x = self.conv1(x, edge_index, edge_attr)
 		x = self.conv2(x, edge_index, edge_attr)
-
 		# 提取特定节点的嵌入表示
 		node_embedding = x[node_idx]
 
@@ -83,7 +82,6 @@ def graph_view(graph):
 	print("Number of normal:", y_zero)
 	print("Number of phisher", y_one)
 
-
 from sklearn.metrics import precision_score, recall_score, f1_score, confusion_matrix
 
 
@@ -95,9 +93,9 @@ def train_gat_model(train_data, test_data,save_model=False):
 	graph_view(train_data)
 	print('--------------------Test Dataset-------------------------')
 	graph_view(test_data)
-
+	hidden_dim=16
 	# Initialization
-	model = GATWithClassifier(in_dim=train_data.num_node_features, hidden_dim=4, num_heads=2)
+	model = GATWithClassifier(in_dim=train_data.num_node_features, hidden_dim=hidden_dim, num_heads=2)
 	print(f'node_features size: {train_data.num_node_features}')
 	criterion = nn.BCELoss()
 	optimizer = Adam(model.parameters(), lr=lr)
@@ -116,7 +114,7 @@ def train_gat_model(train_data, test_data,save_model=False):
 		loss.backward()
 		optimizer.step()
 
-		if (epoch + 1) % 1 == 0:
+		if (epoch + 1) % 10 == 0:
 			model.eval()
 			with torch.no_grad():
 				output = model(test_data).view(-1)
@@ -201,18 +199,19 @@ def validate_edge_attr(edge_index, edge_attr):
 
 
 if __name__ == "__main__":
-	# # 训练模型
-	# train_data, test_data = read_pkl('train+test_data_embed_0.pkl')
-	# train_gat_model(train_data, test_data,save_model=True)
-	# # 不带嵌入：
-	# train_data, test_data = read_pkl('train+test_data_no_embed_0.pkl')
-	# train_gat_model(train_data, test_data,save_model=False)
+	# 训练模型
+	train_data, test_data = read_pkl('train+test_data_embed_0.pkl')
+	train_gat_model(train_data, test_data,save_model=True)
+
+	train_data, test_data = read_pkl('train+test_data_no_embed_0.pkl')
+	train_gat_model(train_data, test_data,save_model=False)
+
+
 
 	# 测试模型
-	test_data = read_pkl('test_data_embed_0.pkl')
-	# train_data, test_data = read_pkl('train+test_data_embed_0.pkl')
-	gat_model_path = './GAT_model.pth'
-	test_gat_model(test_data, gat_model_path)
+	# test_data = read_pkl('test_data_embed_0.pkl')
+	# gat_model_path = './GAT_model.pth'
+	# test_gat_model(test_data, gat_model_path)
 
 
 # validate_edge_index(train_data.edge_index)
