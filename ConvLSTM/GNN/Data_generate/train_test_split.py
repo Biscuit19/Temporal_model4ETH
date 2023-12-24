@@ -60,16 +60,6 @@ def graph_split(test=False):
 		data = read_pkl(f'part_graph_data_{i}.pkl')
 		print(f'graph nodes:{data.num_nodes}')
 
-		# address_to_index = read_pkl('address_to_index.pkl')
-		# reverse_dict = {v: k for k, v in address_to_index.items()}
-		# address_list=[]
-		# # 节点索引转地址
-		# for node_idx in data.edge_index:
-		# 	print(node_idx)
-		# 	address = reverse_dict.get(node_idx)
-		# 	address_list.append(address)
-		# dump_pkl('address_list.pkl',address_list)
-
 		# 预先计算每个节点的邻居
 		neighbor_dict = {}
 		for start, end in zip(*data.edge_index.tolist()):
@@ -120,11 +110,18 @@ def graph_split(test=False):
 		train_nodes_tensor = torch.tensor(train_indices)
 		test_nodes_tensor = torch.tensor(test_indices)
 
+		print(train_nodes_tensor.size())
+		print(test_nodes_tensor.size())
+
+		train_g_len=len(train_nodes_tensor)
+		test_g_len=len(test_nodes_tensor)
+
+
 		# 为训练集和测试集创建子图
 		train_subgraph_edge_index, _, train_edge_mask = subgraph(subset=train_nodes_tensor, edge_index=data.edge_index,
-																 relabel_nodes=True, return_edge_mask=True)
+																 num_nodes=data.num_nodes,relabel_nodes=True, return_edge_mask=True)
 		test_subgraph_edge_index, _, test_edge_mask = subgraph(subset=test_nodes_tensor, edge_index=data.edge_index,
-															   relabel_nodes=True, return_edge_mask=True)
+															   num_nodes=data.num_nodes,relabel_nodes=True, return_edge_mask=True)
 		print(data.x.size())
 
 		train_sub_graph = Data(x=data.x[train_nodes_tensor], edge_index=train_subgraph_edge_index,
@@ -153,21 +150,117 @@ def graph_split(test=False):
 
 		dump_pkl(f'train+test_data_no_embed_{i}.pkl', (train_sub_graph, test_sub_graph))
 
-		# 计算并输出 y=1 和 y=0 的节点数量及其比例
-		def calculate_and_print_stats(sub_graph, name):
-			y_zero_count = (sub_graph.y == 0).sum().item()
-			y_one_count = (sub_graph.y == 1).sum().item()
-			ratio = y_zero_count / y_one_count if y_zero_count > 0 else float('inf')
-			print(f'{name} - y=0 nodes: {y_zero_count}, y=1 nodes: {y_one_count}, Ratio (y=1/y=0): 1:{ratio:.2f}')
+		print('--------------------Train Dataset-------------------------')
+		graph_view(train_sub_graph)
+		print('--------------------Test Dataset-------------------------')
+		graph_view(test_sub_graph)
 
-		calculate_and_print_stats(train_sub_graph, "Training graph")
-		calculate_and_print_stats(test_sub_graph, "Testing graph")
+
 
 	# 返回子图
 	return
 
+def graph_split_neighbor(test=False):
+	if test:
+		test_graph_generate()
+		return
 
-import torch_geometric.utils as pyg_utils
+	split_ratio = 0.8
+	n = 1
+	for i in range(n):
+		data = read_pkl(f'part_graph_data_{i}.pkl')
+		print(f'graph nodes:{data.num_nodes}')
+
+		# 预先计算每个节点的邻居
+		neighbor_dict = {}
+		for start, end in zip(*data.edge_index.tolist()):
+			if start not in neighbor_dict:
+				neighbor_dict[start] = set()
+			neighbor_dict[start].add(end)
+
+		# 分别获取 y=0 和 y=1 的节点索引
+		y_zero_indices = [i for i, y in enumerate(data.y) if y == 0]
+		y_one_indices = [i for i, y in enumerate(data.y) if y == 1]
+
+		# 为了保证大多数节点有邻居，随机选择一个节点，然后添加其邻居到相应集合
+		def select_connected_nodes(node_indices, num_required):
+			selected = set()
+			while len(selected) < num_required:
+				node = random.choice(node_indices)
+				selected.add(node)
+				if node in neighbor_dict:
+					for nei_node in neighbor_dict[node]:
+						selected.add(nei_node)
+						if len(selected) == num_required:
+							return list(selected)
+
+			return list(selected)[:num_required]  # 限制数量
+
+		# 计算每个类别应有的节点数
+		num_train_zero = int(len(y_zero_indices) * split_ratio)
+		num_train_one = int(len(y_one_indices) * split_ratio)
+
+		print(f'num_train_zero {num_train_zero}')
+		print(f'num_train_one {num_train_one}')
+
+		# 分别选择两个类别的节点
+		train_zero_indices = select_connected_nodes(y_zero_indices, num_train_zero)
+		train_one_indices = select_connected_nodes(y_one_indices, num_train_one)
+
+		# 训练集和测试集的节点索引
+		train_indices = list(set(train_zero_indices + train_one_indices))
+
+		test_indices = list(
+			(set(y_zero_indices) | set(y_one_indices)) - (set(train_zero_indices) | set(train_one_indices)))
+
+		# 转换为张量
+		train_nodes_tensor = torch.tensor(train_indices)
+		test_nodes_tensor = torch.tensor(test_indices)
+
+
+		# 为训练集和测试集创建子图
+		train_subgraph_edge_index, _, train_edge_mask = subgraph(subset=train_nodes_tensor, edge_index=data.edge_index,
+																num_nodes=data.num_nodes, relabel_nodes=True, return_edge_mask=True)
+		test_subgraph_edge_index, _, test_edge_mask = subgraph(subset=test_nodes_tensor, edge_index=data.edge_index,
+															   num_nodes=data.num_nodes, relabel_nodes=True, return_edge_mask=True)
+		print(data.x.size())
+
+		train_sub_graph = Data(x=data.x[train_nodes_tensor], edge_index=train_subgraph_edge_index,
+							   edge_attr=data.edge_attr[train_edge_mask], y=data.y[train_nodes_tensor])
+
+		test_sub_graph = Data(x=data.x[test_nodes_tensor], edge_index=test_subgraph_edge_index,
+							  edge_attr=data.edge_attr[test_edge_mask], y=data.y[test_nodes_tensor])
+
+		print(f'Embeding train Size : {train_sub_graph.x.size()}')
+		print(f'Embeding test Size : {test_sub_graph.x.size()}')
+
+		dump_pkl(f'train+test_data_embed_{i}.pkl', (train_sub_graph, test_sub_graph))
+
+		static_feature_num = 17
+		# 截取的是前static_feature_num个特征(列）
+		data.x = data.x[:, :static_feature_num]
+		# data.x = torch.cat((data.x, torch.zeros(data.x.shape[0],1)), dim=1)
+
+		train_sub_graph = Data(x=data.x[train_nodes_tensor], edge_index=train_subgraph_edge_index,
+							   edge_attr=data.edge_attr[train_edge_mask], y=data.y[train_nodes_tensor])
+
+		test_sub_graph = Data(x=data.x[test_nodes_tensor], edge_index=test_subgraph_edge_index,
+							  edge_attr=data.edge_attr[test_edge_mask], y=data.y[test_nodes_tensor])
+		print(f'No_embeding Node Size : {train_sub_graph.x.size()}')
+		print(f'No_embeding train Size : {train_sub_graph.x.size()}')
+		print(f'No_embeding test Size : {test_sub_graph.x.size()}')
+
+		dump_pkl(f'train+test_data_no_embed_{i}.pkl', (train_sub_graph, test_sub_graph))
+
+		print('--------------------Train Dataset-------------------------')
+		graph_view(train_sub_graph)
+		print('--------------------Test Dataset-------------------------')
+		graph_view(test_sub_graph)
+
+
+
+	# 返回子图
+	return
 
 
 def graph_view(graph):
@@ -192,15 +285,12 @@ def graph_view(graph):
 	ratio = y_zero / y_one if y_one != 0 else float('inf')
 	print("Ratio of y=0 to y=1 nodes: {:.2f}".format(ratio))
 
-	# 转换为 NetworkX 图以检查连通性
-	nx_graph = pyg_utils.to_networkx(graph, to_undirected=True)
-	num_connected_components = nx.number_connected_components(nx_graph)
-	print("Number of connected components in the graph:", num_connected_components)
-
-
 if __name__ == '__main__':
-	# graph_split(False)
-	graph_split(test=True)
+
+	graph_split()
+	# graph_split_neighbor()
+
+	# graph_split(test=True)
 
 # train_sub_graph, test_sub_graph = read_pkl('train+test_dataC.pkl')
 # graph = read_pkl('part_graph_data.pkl')

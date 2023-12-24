@@ -5,6 +5,8 @@ import torch.nn.functional as F
 from torch_geometric.nn import GCNConv
 from torch.optim import Adam
 from sklearn.metrics import precision_score, recall_score, f1_score, accuracy_score, confusion_matrix
+
+
 def read_pkl(pkl_file):
 	# 从pkl文件加载数据
 	print(f'Reading {pkl_file}...')
@@ -20,6 +22,7 @@ def dump_pkl(pkl_file, data):
 		pickle.dump(data, file)
 	return
 
+
 def graph_view(graph):
 	num_nodes = graph.num_nodes
 	print("Number of nodes:", num_nodes)
@@ -28,7 +31,7 @@ def graph_view(graph):
 	print("Number of edges:", num_edges)
 
 	# 图的入度
-	degree=num_edges / (num_nodes * 2)
+	degree = num_edges / (num_nodes * 2)
 	print("Degree of the graph: {:.6f}".format(degree))
 
 	# 获取 y=1 和 y=0 的节点数量
@@ -44,7 +47,7 @@ def graph_view(graph):
 
 
 class GCNWithClassifier(torch.nn.Module):
-	def __init__(self, in_dim, hidden_dim,num_classes=2):
+	def __init__(self, in_dim, hidden_dim, num_classes=2):
 		super(GCNWithClassifier, self).__init__()
 		# 定义两层GCN卷积层
 		# 将当前节点及其邻居的原始特征 聚合为当前节点的隐藏特征。
@@ -53,7 +56,6 @@ class GCNWithClassifier(torch.nn.Module):
 		# 每一层GCN都在将邻居的信息 层数越高 当前节点越能融合高阶的邻居节点特征
 		self.conv2 = GCNConv(hidden_dim, num_classes)
 		# self.conv2 = GCNConv(hidden_dim, hidden_dim)
-
 
 		# 定义分类器
 		self.classifier = nn.Sequential(
@@ -82,16 +84,17 @@ class GCNWithClassifier(torch.nn.Module):
 		x = self.classifier(x)
 		return x
 
+
 def train_gcn_model(train_data, test_data, save_model=False):
-	num_epochs = 500
-	lr = 0.1
+	num_epochs = 2000
+	lr = 0.05
+	hidden_dim = 4
 
 	print('--------------------Train Dataset-------------------------')
 	# 假设 graph_view 是一个用于显示图信息的函数
 	graph_view(train_data)
 	print('--------------------Test Dataset-------------------------')
 	graph_view(test_data)
-	hidden_dim=4
 	# 初始化模型
 	model = GCNWithClassifier(in_dim=train_data.num_node_features, hidden_dim=hidden_dim)
 	print(f'node_features size: {train_data.num_node_features}')
@@ -112,7 +115,7 @@ def train_gcn_model(train_data, test_data, save_model=False):
 		loss.backward()
 		optimizer.step()
 
-		if (epoch + 1) % 10 == 0:
+		if (epoch + 1) % 50 == 0:
 			model.eval()
 			with torch.no_grad():
 				output = model(test_data).view(-1)
@@ -139,18 +142,17 @@ def train_gcn_model(train_data, test_data, save_model=False):
 
 	return model
 
+
 if __name__ == "__main__":
 	# 训练模型
 	train_data, test_data = read_pkl('train+test_data_embed_0.pkl')
-	train_gcn_model(train_data, test_data,save_model=True)
+	train_gcn_model(train_data, test_data, save_model=True)
 	# 不带嵌入：
 	train_data, test_data = read_pkl('train+test_data_no_embed_0.pkl')
-	train_gcn_model(train_data, test_data,save_model=False)
+	train_gcn_model(train_data, test_data, save_model=False)
 
-	# # 测试模型
-	# test_data = read_pkl('test_data_embed_0.pkl')
-	# # train_data, test_data = read_pkl('train+test_data_embed_0.pkl')
-	# gat_model_path = './GAT_model.pth'
-	# test_gat_model(test_data, gat_model_path)
-
-
+# # 测试模型
+# test_data = read_pkl('test_data_embed_0.pkl')
+# # train_data, test_data = read_pkl('train+test_data_embed_0.pkl')
+# gat_model_path = './GAT_model.pth'
+# test_gat_model(test_data, gat_model_path)

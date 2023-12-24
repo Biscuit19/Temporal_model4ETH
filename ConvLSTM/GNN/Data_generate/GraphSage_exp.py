@@ -76,9 +76,9 @@ class GraphSAGE(torch.nn.Module):
 
 
 def train_graphsage_model(train_data, test_data, save_model=False):
-	num_epochs = 1000
+	num_epochs = 5000
 	lr = 0.01
-	hidden_dim = 128
+	hidden_dim = 8
 
 	print('--------------------Train Dataset-------------------------')
 	graph_view(train_data)
@@ -106,7 +106,7 @@ def train_graphsage_model(train_data, test_data, save_model=False):
 		optimizer.step()
 
 		# 每10个epoch进行一次评估
-		if (epoch + 1) % 10 == 0:
+		if (epoch + 1) % 50 == 0:
 			model.eval()
 			with torch.no_grad():
 				output = model(test_data)

@@ -92,14 +92,14 @@ from sklearn.metrics import precision_score, recall_score, f1_score, confusion_m
 
 
 def train_gat_model(train_data, test_data,save_model=False):
-	num_epochs = 500
+	num_epochs = 5000
 	lr = 0.01
 
 	print('--------------------Train Dataset-------------------------')
 	graph_view(train_data)
 	print('--------------------Test Dataset-------------------------')
 	graph_view(test_data)
-	hidden_dim=16
+	hidden_dim=8
 
 	num_heads=2
 
@@ -123,7 +123,7 @@ def train_gat_model(train_data, test_data,save_model=False):
 		loss.backward()
 		optimizer.step()
 
-		if (epoch + 1) % 10 == 0:
+		if (epoch + 1) % 50 == 0:
 			model.eval()
 			with torch.no_grad():
 				output = model(test_data).view(-1)
@@ -208,8 +208,9 @@ def validate_edge_attr(edge_index, edge_attr):
 
 
 if __name__ == "__main__":
-	part_graph=read_pkl('part_graph_data_0.pkl')
-	graph_view(part_graph)
+	# part_graph=read_pkl('part_graph_data_0.pkl')
+	# graph_view(part_graph)
+
 	# 训练模型
 	train_data, test_data = read_pkl('train+test_data_embed_0.pkl')
 	train_gat_model(train_data, test_data,save_model=True)
