@@ -76,7 +76,7 @@ def time_window_generate(pkl_file):
 			windows_trans[tran[3]].append(tran)
 		attributes['all_trans'] = windows_trans
 
-	dump_file = ('time_windowed_account_dict_classifer.pkl')
+	dump_file = ('time_windowed_account_dict.pkl')
 
 	print(f'dumping in {dump_file}...')
 	with open(dump_file, 'wb') as f:
@@ -190,14 +190,14 @@ def conv_train_data_generate(pkl_file):
 	batch = data_normalize(batch)
 
 	# Save the processed batch as a new pkl file
-	batch_dump_file = 'conv_train_data_classifer.pkl'
+	batch_dump_file = 'conv_train_data.pkl'
 	with open(batch_dump_file, 'wb') as f:
 		pickle.dump(batch, f)
 
 
 if __name__ == '__main__':
-	acc_pkl_file= 'conv_account_dict_classifer.pkl'
+	acc_pkl_file= 'conv_account_dict.pkl'
 	time_window_generate(acc_pkl_file)
 
-	time_pkl_file = 'time_windowed_account_dict_classifer.pkl'
+	time_pkl_file = 'time_windowed_account_dict.pkl'
 	conv_train_data_generate(time_pkl_file)

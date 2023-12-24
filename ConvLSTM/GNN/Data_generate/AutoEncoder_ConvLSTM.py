@@ -439,6 +439,6 @@ def test():
 	return output[0]
 
 if __name__ == '__main__':
-	test()
+	# test()
 
-	# model_train()
+	model_train()
