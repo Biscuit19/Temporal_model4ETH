@@ -93,7 +93,7 @@ def train_gcn_model(train_data, test_data, save_model=False):
 	print('--------------------Train Dataset-------------------------')
 	# 假设 graph_view 是一个用于显示图信息的函数
 	graph_view(train_data)
-	print('--------------------Test Dataset-------------------------')
+	print('--------------------Test Dataset--------------------------')
 	graph_view(test_data)
 	# 初始化模型
 	model = GCNWithClassifier(in_dim=train_data.num_node_features, hidden_dim=hidden_dim)
