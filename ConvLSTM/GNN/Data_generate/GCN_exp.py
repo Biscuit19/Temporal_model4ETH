@@ -27,16 +27,20 @@ def graph_view(graph):
 	num_edges = graph.num_edges
 	print("Number of edges:", num_edges)
 
-	# 图的密度
-	density = num_edges / (num_nodes * (num_nodes - 1))
-	print("Density of the graph: {:.6f}".format(density))
+	# 图的入度
+	degree=num_edges / (num_nodes * 2)
+	print("Degree of the graph: {:.6f}".format(degree))
 
 	# 获取 y=1 和 y=0 的节点数量
 	y_zero = (graph.y == 0).sum().item()
 	y_one = (graph.y == 1).sum().item()
 
-	print("Number of normal:", y_zero)
-	print("Number of phisher", y_one)
+	print("Number of nodes where y=0:", y_zero)
+	print("Number of nodes where y=1:", y_one)
+
+	# y=0 和 y=1 的节点比例
+	ratio = y_zero / y_one if y_one != 0 else float('inf')
+	print("Ratio of y=0 to y=1 nodes: {:.2f}".format(ratio))
 
 
 class GCNWithClassifier(torch.nn.Module):

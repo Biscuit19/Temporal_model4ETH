@@ -33,12 +33,35 @@ def dump_pkl(pkl_file, data):
 		pickle.dump(data, file)
 	return
 
+def graph_view(graph):
+	num_nodes = graph.num_nodes
+	print("Number of nodes:", num_nodes)
+
+	num_edges = graph.num_edges
+	print("Number of edges:", num_edges)
+
+	# 图的入度
+	degree=num_edges / (num_nodes * 2)
+	print("Degree of the graph: {:.6f}".format(degree))
+
+	# 获取 y=1 和 y=0 的节点数量
+	y_zero = (graph.y == 0).sum().item()
+	y_one = (graph.y == 1).sum().item()
+
+	print("Number of nodes where y=0:", y_zero)
+	print("Number of nodes where y=1:", y_one)
+
+	# y=0 和 y=1 的节点比例
+	ratio = y_zero / y_one if y_one != 0 else float('inf')
+	print("Ratio of y=0 to y=1 nodes: {:.2f}".format(ratio))
 
 # 定义 GAT 模型
 class GATWithClassifier(torch.nn.Module):
 	def __init__(self, in_dim, hidden_dim, num_heads):
 		super(GATWithClassifier, self).__init__()
+		# heads就是注意力头参数，是会自动算进去的，
 		self.conv1 = GATConv(in_dim, hidden_dim, heads=num_heads)
+		# 初始维度是拼接的，所以要乘num_heads，是对的逻辑
 		self.conv2 = GATConv(hidden_dim * num_heads, hidden_dim, heads=num_heads)
 		self.classifier = nn.Sequential(
 			# 全连接层，将输入的维度从hidden_dim * num_heads 转换为1，这是二分类的输出
@@ -64,23 +87,6 @@ class GATWithClassifier(torch.nn.Module):
 		return node_embedding
 
 
-def graph_view(graph):
-	num_nodes = graph.num_nodes
-	print("Number of nodes:", num_nodes)
-
-	num_edges = graph.num_edges
-	print("Number of edges:", num_edges)
-
-	# 图的密度
-	density = num_edges / (num_nodes * (num_nodes - 1))
-	print("Density of the graph: {:.6f}".format(density))
-
-	# 获取 y=1 和 y=0 的节点数量
-	y_zero = (graph.y == 0).sum().item()
-	y_one = (graph.y == 1).sum().item()
-
-	print("Number of normal:", y_zero)
-	print("Number of phisher", y_one)
 
 from sklearn.metrics import precision_score, recall_score, f1_score, confusion_matrix
 
@@ -94,8 +100,11 @@ def train_gat_model(train_data, test_data,save_model=False):
 	print('--------------------Test Dataset-------------------------')
 	graph_view(test_data)
 	hidden_dim=16
+
+	num_heads=2
+
 	# Initialization
-	model = GATWithClassifier(in_dim=train_data.num_node_features, hidden_dim=hidden_dim, num_heads=2)
+	model = GATWithClassifier(in_dim=train_data.num_node_features, hidden_dim=hidden_dim, num_heads=num_heads)
 	print(f'node_features size: {train_data.num_node_features}')
 	criterion = nn.BCELoss()
 	optimizer = Adam(model.parameters(), lr=lr)
