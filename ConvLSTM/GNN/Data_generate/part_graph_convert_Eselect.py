@@ -210,8 +210,8 @@ def create_part_graph(user_dict, address_to_index, data):
 		rw_node_list.append(node)
 
 	# 恶意用户的数量
-	user_1_num = 10
-	ratio = 20
+	user_1_num = 500
+	ratio = 30
 	user_0_num = user_1_num * ratio
 
 	user_num = user_0_num + user_1_num
