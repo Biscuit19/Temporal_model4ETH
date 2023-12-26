@@ -213,12 +213,13 @@ def create_part_graph(user_dict, address_to_index, data):
 		rw_node_list.append(node)
 
 	# 恶意用户的数量
-	user_1_num_expect = 900
+	user_1_num_expect = 300
 	user_1_num = min(user_1_num_expect, len(user_category_1))
-	ratio = 20
+	ratio = 300
 	user_0_num = user_1_num * ratio
 
 	user_num = user_0_num + user_1_num
+
 	print(f'Expect {user_num} nodes')
 
 	# 进行随机抽样
@@ -257,6 +258,8 @@ def create_part_graph(user_dict, address_to_index, data):
 		if 1000 >= user_dict[address]['all_cnt'] >= 3:
 			filtered_list.add(address)
 	print(f'filtered neighbours num {len(filtered_list) - (user_1_num)}')
+
+	print(f'filtered_list num {len(filtered_list)}')
 
 	# 3.随机游走选择剩余节点
 	print('[Step 3 Random walk find normal user].....')
@@ -321,12 +324,13 @@ def create_part_graph(user_dict, address_to_index, data):
 		# 创建新的图数据对象
 		sub_graph = Data(x=sub_x, edge_index=subgraph_edge_index, edge_attr=data.edge_attr[edge_mask],
 						 y=data.y[filter_nodes])
-		dump_pkl(f'part_graph_data_0_relabel_{relabel}.pkl', sub_graph)
+		# dump_pkl(f'part_graph_data_0_relabel_{relabel}.pkl', sub_graph)
+
 		return sub_graph
 
 	sub_graph = relabel_subgraph_create(True)
 
-	relabel_subgraph_create(False)
+	# relabel_subgraph_create(False)
 
 	print(f'create node: {(sub_graph.num_nodes)}; create edge {(sub_graph.num_edges)}')
 

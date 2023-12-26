@@ -208,8 +208,8 @@ def validate_edge_attr(edge_index, edge_attr):
 
 
 if __name__ == "__main__":
-	# part_graph=read_pkl('part_graph_data_0.pkl')
-	# graph_view(part_graph)
+	part_graph=read_pkl('part_graph_data_0.pkl')
+	graph_view(part_graph)
 
 	# 训练模型
 	train_data, test_data = read_pkl('train+test_data_embed_0.pkl')

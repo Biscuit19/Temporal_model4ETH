@@ -86,9 +86,9 @@ class GCNWithClassifier(torch.nn.Module):
 
 
 def train_gcn_model(train_data, test_data, save_model=False):
-	num_epochs = 2000
-	lr = 0.05
-	hidden_dim = 4
+	num_epochs = 5000
+	lr = 0.01
+	hidden_dim = 8
 
 	print('--------------------Train Dataset-------------------------')
 	# 假设 graph_view 是一个用于显示图信息的函数
@@ -144,6 +144,7 @@ def train_gcn_model(train_data, test_data, save_model=False):
 
 
 if __name__ == "__main__":
+
 	# 训练模型
 	train_data, test_data = read_pkl('train+test_data_embed_0.pkl')
 	train_gcn_model(train_data, test_data, save_model=True)
