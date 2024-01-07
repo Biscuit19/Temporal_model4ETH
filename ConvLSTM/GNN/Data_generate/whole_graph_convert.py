@@ -34,11 +34,11 @@ def normalize_tensor(tensor):
 
 
 def data_normalize():
-	graph = read_pkl('whole_graph_data.pkl')
+	graph = read_pkl('./whole_graph_data.pkl')
 	graph.x = normalize_tensor(graph.x)
 	graph.edge_attr = normalize_tensor(graph.edge_attr)
 	data = Data(x=graph.x, edge_attr=graph.edge_attr, edge_index=graph.edge_index, y=graph.y)
-	with open('whole_graph_data.pkl', 'wb') as file:
+	with open('./whole_graph_data.pkl', 'wb') as file:
 		pickle.dump(data, file)
 
 
@@ -136,7 +136,7 @@ def graph_convert():
 	tnx_list = read_pkl('./all_tnx_data_zsu.pkl')
 	graph_data = create_graph(accounts_dict, tnx_list)
 	# 存储为Pickle文件
-	with open('whole_graph_data.pkl', 'wb') as file:
+	with open('./whole_graph_data.pkl', 'wb') as file:
 		pickle.dump(graph_data, file)
 
 

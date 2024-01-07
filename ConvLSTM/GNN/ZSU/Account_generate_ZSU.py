@@ -40,8 +40,9 @@ def accounts_data_generate(G):
 		# 时间窗口
 		timewindow = 0
 		# 滤除交易额为0的交易
-		if amount == 0:
-			continue
+		# if amount == 0:
+		# 	continue
+
 		trans_hash+=1
 
 		# 先输入from_address
@@ -93,15 +94,15 @@ def accounts_data_generate(G):
 	with open('./all_account_data_zsu.pkl', 'wb') as f:
 		pickle.dump(accounts_dict, f)
 
-	conv_addcount_dict = {}
-	for address, user_data in tqdm(accounts_dict.items(), desc="Generating conv_account_dict"):
-		new_user_data = user_data.copy()  # 复制用户数据
-		new_user_data['out_trans'] = [trans[:-3] for trans in user_data['out_trans']]
-		new_user_data['in_trans'] = [trans[:-3] for trans in user_data['in_trans']]
-		new_user_data['all_trans'] = [trans[:-3] for trans in user_data['all_trans']]
-		conv_addcount_dict[address] = new_user_data
-	with open('./conv_account_dict.pkl', 'wb') as f:
-		pickle.dump(conv_addcount_dict, f)
+	# conv_addcount_dict = {}
+	# for address, user_data in tqdm(accounts_dict.items(), desc="Generating conv_account_dict"):
+	# 	new_user_data = user_data.copy()  # 复制用户数据
+	# 	new_user_data['out_trans'] = [trans[:-3] for trans in user_data['out_trans']]
+	# 	new_user_data['in_trans'] = [trans[:-3] for trans in user_data['in_trans']]
+	# 	new_user_data['all_trans'] = [trans[:-3] for trans in user_data['all_trans']]
+	# 	conv_addcount_dict[address] = new_user_data
+	# with open('./conv_account_dict.pkl', 'wb') as f:
+	# 	pickle.dump(conv_addcount_dict, f)
 
 	return accounts_dict
 
@@ -117,9 +118,9 @@ def tnx_data_generate(G):
 		timewindow = 0
 
 		# 滤除交易额为0的交易
-		if amount == 0:
-			amount_zero += 1
-			continue
+		# if amount == 0:
+		# 	amount_zero += 1
+		# 	continue
 		# 滤除错误交易数据
 		if isinstance(from_address, float) or isinstance(to_address, float):
 			continue
@@ -186,10 +187,10 @@ def tnx_pkl_read(pklfile):
 
 
 if __name__ == '__main__':
-	# data_generate()
+	data_generate()
 
-	pkl_file='all_account_data_zsu.pkl'
-	account_pkl_read(pkl_file)
-
-	tnx_pkl_read('all_tnx_data_zsu.pkl')
+	# pkl_file='all_account_data_zsu.pkl'
+	# account_pkl_read(pkl_file)
+	#
+	# tnx_pkl_read('all_tnx_data_zsu.pkl')
 

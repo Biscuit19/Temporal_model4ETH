@@ -31,15 +31,23 @@ class SimpleMLP(nn.Module):
 
 # 定义模型训练函数
 def train_model(train_data):
+    # 检测是否有可用的GPU，如果有，则使用GPU
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    print("Using device:", device)
 
     features_tensor, labels_tensor = train_data
-    # 设置一些超参数
-    epochs = 5  # 训练轮数
-    learning_rate = 0.001  # 学习率
-    input_size = 17+64
-    batch_size = 32  # 批处理大小
+    # 将数据移动到设备上
+    features_tensor = features_tensor.to(device)
+    labels_tensor = labels_tensor.to(device)
 
-    print('data size:', features_tensor.size())
+    input_size = features_tensor.shape[1]
+
+    # 设置一些超参数
+    epochs = 300  # 训练轮数
+    learning_rate = 0.001  # 学习率
+    batch_size = 128  # 批处理大小
+
+    print('Data size:', features_tensor.size())
 
     # 创建数据集
     dataset = TensorDataset(features_tensor, labels_tensor)
@@ -53,43 +61,54 @@ def train_model(train_data):
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
     test_loader = DataLoader(test_dataset, batch_size=batch_size)
 
-
     # 创建模型、损失函数和优化器
-    model = SimpleMLP(input_size)
-    criterion = nn.BCELoss()  # 二分类交叉熵损失函数
+    model = SimpleMLP(input_size).to(device)  # 将模型移动到设备上
+    criterion = nn.BCELoss()
     optimizer = optim.Adam(model.parameters(), lr=learning_rate)
 
     # 训练和测试模型
     for epoch in range(epochs):
         model.train()
         for inputs, labels in train_loader:
+            inputs, labels = inputs.to(device), labels.to(device)  # 将数据移动到设备上
+
             optimizer.zero_grad()  # 清除之前的梯度
             outputs = model(inputs)  # 前向传播
             loss = criterion(outputs, labels)  # 计算损失
             loss.backward()  # 反向传播
             optimizer.step()  # 更新权重
 
-        # 测试模型
-        model.eval()
-        all_labels = []
-        all_outputs = []
-        with torch.no_grad():
-            for inputs, labels in test_loader:
-                outputs = model(inputs)
-                predicted = (outputs > 0.5).float()
-                all_labels.extend(labels.view(-1).tolist())
-                all_outputs.extend(predicted.view(-1).tolist())
+        if (epoch + 1) % 10 == 0:
+            # 测试模型
+            model.eval()
+            all_labels = []
+            all_outputs = []
+            with torch.no_grad():
+                for inputs, labels in test_loader:
+                    inputs, labels = inputs.to(device), labels.to(device)  # 将数据移动到设备上
+                    outputs = model(inputs)
+                    predicted = (outputs > 0.5).float()
+                    all_labels.extend(labels.cpu().view(-1).tolist())  # 将标签移回CPU
+                    all_outputs.extend(predicted.cpu().view(-1).tolist())  # 将预测结果移回CPU
 
-        # 计算评估指标
-        precision = precision_score(all_labels, all_outputs, zero_division=0)
-        recall = recall_score(all_labels, all_outputs)
-        f1 = f1_score(all_labels, all_outputs)
-        accuracy = accuracy_score(all_labels, all_outputs)
-
-        print(f"Epoch {epoch + 1}/{epochs}, Loss: {loss.item()} Precision: {precision:.4f}, Recall: {recall:.4f}, F1 Score: {f1:.4f}, Accuracy: {accuracy:.4f})")
+            # 计算评估指标
+            precision = precision_score(all_labels, all_outputs, zero_division=0)
+            recall = recall_score(all_labels, all_outputs)
+            f1 = f1_score(all_labels, all_outputs)
+            accuracy = accuracy_score(all_labels, all_outputs)
+            print(
+                f'Epoch [{epoch + 1}/{epochs}], Loss: {loss.item():.4f}, Accuracy: {accuracy:.4f}, Precision: {precision:.4f}, Recall: {recall:.4f}, F1: {f1:.4f}')
 
 
 if __name__ == '__main__':
     # 训练模型
-    train_data = read_pkl('mlp_train_data.pkl')
+    train_data = read_pkl('mlp_data_all_feature.pkl')
     train_model(train_data)
+
+    train_data = read_pkl('mlp_data_embed.pkl')
+    train_model(train_data)
+
+    train_data = read_pkl('mlp_data_static.pkl')
+    train_model(train_data)
+
+

@@ -71,7 +71,7 @@ def create_mlp_data(user_dict):
 	print(f'Total normal numbers: {len(user_category_0)}')  # 593878
 
 	# 恶意用户的数量
-	x = 500
+	x = 900
 	# 进行随机抽样
 	user_category_1_sampled = random.sample(user_category_1, min(x, len(user_category_1)))
 	user_category_0_sampled = random.sample(user_category_0,
@@ -107,17 +107,29 @@ def create_mlp_data(user_dict):
 
 	# 将特征列表和标签列表转换为张量
 	features_tensor = normalize_tensor(torch.stack(features))
+
+	only_embed_features_tensor = features_tensor[:, 17:]
+
+	only_static_features_tensor= features_tensor[:, :17]
+
 	labels_tensor = torch.tensor(labels).unsqueeze(1).float()  # 转换为二维张量并确保标签是浮点类型
 
 	train_data = (features_tensor, labels_tensor)
 
-	return train_data
+	only_embed_train_data = (only_embed_features_tensor, labels_tensor)
+
+	only_static_train_data = (only_static_features_tensor, labels_tensor)
+
+	dump_pkl('mlp_data_all_feature.pkl',train_data)
+	dump_pkl('mlp_data_embed.pkl',only_embed_train_data)
+	dump_pkl('mlp_data_static.pkl',only_static_train_data)
+
+	return
 
 
 def mlp_data():
 	user_dict = read_pkl('all_account_data_zsu.pkl')
-	train_data = create_mlp_data(user_dict)
-	dump_pkl('mlp_train_data.pkl',train_data)
+	create_mlp_data(user_dict)
 
 
 if __name__ == '__main__':

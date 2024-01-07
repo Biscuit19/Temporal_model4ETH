@@ -198,25 +198,24 @@ def create_part_graph(user_dict, address_to_index, data):
 	user_category_1 = []  # 存储"category" = 1的用户
 	user_category_0 = []  # 存储"category" = 0的用户
 	for user, details in user_dict.items():
-		if 1000 >= details['all_cnt'] >= 3:
-			if details['category'] == 1:
-				user_category_1.append(user)
-			elif details['category'] == 0:
-				user_category_0.append(user)
+		if details['category'] == 1 and 1000 >= details['all_cnt'] >= 3:
+			user_category_1.append(user)
+
+		if details['category'] == 0 and 1000 >= details['all_cnt'] >= 500:
+			user_category_0.append(user)
+
 	user_filterd = user_category_1 + user_category_0
-	print(f'Total phisher numbers: {len(user_category_1)}')  # 996
-	print(f'Total normal numbers: {len(user_category_0)}')  # 282536
-	# 过滤后的正常节点
-	rw_node_list = []
-	for user in user_category_0:
-		node = address_to_index.get(user)
-		rw_node_list.append(node)
+
+	
+	print(f'Total phisher numbers: {len(user_category_1)}')
+	print(f'Total normal numbers: {len(user_category_0)}')
+
 
 	# 恶意用户的数量
 	user_1_num_expect = 300
 	user_1_num = min(user_1_num_expect, len(user_category_1))
-	ratio = 10
-	user_0_num = user_1_num * ratio
+	ratio = 0.8
+	user_0_num = int(user_1_num * ratio)
 
 	user_num = user_0_num + user_1_num
 
@@ -224,18 +223,23 @@ def create_part_graph(user_dict, address_to_index, data):
 
 	# 进行随机抽样
 	user_category_1_sampled = random.sample(user_category_1, user_1_num)
-
 	print(f'sampled phisher numbers: {len(user_category_1_sampled)}')
 
+	user_category_0_sampled = random.sample(user_category_0, user_0_num)
+	print(f'sampled normal numbers: {len(user_category_0_sampled)}')
+
+	user_sample=user_category_1_sampled+user_category_0_sampled
+
 	# 筛选得到的地址列表
-	filtered_list = set(user_category_1_sampled)
+	filtered_list = set(user_sample)
 
 	# 寻找邻居用的
 	selected_nodes_indices = [address_to_index[user] for user in filtered_list]
 
+
 	# 2.搜索恶意节点的邻居
 	# 预计算邻居节点字典
-	print('[Step 2 Find phisher neighbour nodes].....')
+	print('[Step 2 Find neighbour nodes].....')
 	neighbor_dict = {}
 	for start, end in zip(*data.edge_index.tolist()):
 		if start not in neighbor_dict:
@@ -246,41 +250,26 @@ def create_part_graph(user_dict, address_to_index, data):
 	# 找到他们的邻居节点索引
 	neighbour_nodes_indices = set()
 	for node_idx in tqdm(selected_nodes_indices, desc='Neighbour finding'):
+		# 忽略恶意节点的邻居
+		if reverse_dict[node_idx] in user_category_1_sampled:
+			continue
 		neighbours = neighbor_dict.get(node_idx, set())
 		neighbour_nodes_indices.update(neighbours)
 	print(f'neighbours num {len(neighbour_nodes_indices)}')
 
 	# 节点索引转地址
-	print(f'unfiltered neighbours num {len(neighbour_nodes_indices)}')
 	for node_idx in neighbour_nodes_indices:
 		address = reverse_dict.get(node_idx)
-		# 过滤不符合条件的恶意节点邻居
-		if 1000 >= user_dict[address]['all_cnt'] >= 3:
-			filtered_list.add(address)
-	print(f'filtered neighbours num {len(filtered_list) - (user_1_num)}')
-
-	print(f'filtered_list num {len(filtered_list)}')
-
-	# 3.随机游走选择剩余节点
-	print('[Step 3 Random walk find normal user].....')
-	lake_num = user_num - len(filtered_list)
-	# 只选择3-1000的正常节点，因为特征很重要，不能随便选点
-	user0_nodes_indices = extract_subgraph_filtered(data, lake_num, rw_node_list)
-	# 节点索引转地址
-	for node_idx in user0_nodes_indices:
-		address = reverse_dict.get(node_idx)
+		# 不过滤
 		filtered_list.add(address)
+
+	print(f'total num {len(filtered_list)}')
 
 	# 合并,得到子图节点索引
 	print('[Merge nodes].....')
 	filter_nodes = []
-	up1000 = []
-	below3 = []
 	for user in filtered_list:
 		filter_nodes.append(address_to_index[user])
-
-	# print(f'up1000 {len(up1000)}')
-	# print(f'below3 {len(below3)}')
 
 	dump_pkl('filtered_list.pkl', filtered_list)
 	dump_pkl('filter_nodes_indices.pkl', filter_nodes)

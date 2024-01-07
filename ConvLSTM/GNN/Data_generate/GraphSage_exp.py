@@ -77,7 +77,7 @@ class GraphSAGE(torch.nn.Module):
 
 def train_graphsage_model(train_data, test_data, save_model=False):
 	num_epochs = 5000
-	lr = 0.1
+	lr = 0.01
 	hidden_dim = 8
 
 	print('--------------------Train Dataset-------------------------')

@@ -6,7 +6,22 @@ def load_pickle(fname):
         return pickle.load(f)
 
 G = load_pickle('./MulDiGraph.pkl')
+
 print(nx.info(G))
+# 获取节点数
+num_nodes = G.number_of_nodes()
+
+# 获取边数
+num_edges = G.number_of_edges()
+
+# 计算平均入度
+total_in_degree = sum(d for n, d in G.in_degree())
+average_in_degree = total_in_degree / num_nodes
+
+print("节点数:", num_nodes)
+print("边数:", num_edges)
+print("平均入度:", average_in_degree)
+
 
 # Traversal nodes:
 for idx, nd in enumerate(nx.nodes(G)):
@@ -19,6 +34,7 @@ for idx, nd in enumerate(nx.nodes(G)):
 for u, v, key, data in G.edges(keys=True, data=True):
     tag = G.nodes[u]['isp']
     print(f"源: {u},tag:{tag} 目标: {v}, 边的信息: {data},key:{key}")
+    break
 
 # Travelsal edges:
 for ind, edge in enumerate(nx.edges(G)):
@@ -30,4 +46,4 @@ for ind, edge in enumerate(nx.edges(G)):
 
     amo, tim = eg['amount'], eg['timestamp']
     print(amo, tim)
-    # break
+    break
