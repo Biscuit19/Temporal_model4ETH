@@ -86,7 +86,7 @@ class GCNWithClassifier(torch.nn.Module):
 
 
 def train_gcn_model(train_data, test_data, save_model=False):
-	num_epochs = 5000
+	num_epochs = 8000
 	lr = 0.01
 	hidden_dim = 8
 

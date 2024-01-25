@@ -92,7 +92,7 @@ from sklearn.metrics import precision_score, recall_score, f1_score, confusion_m
 
 
 def train_gat_model(train_data, test_data,save_model=False):
-	num_epochs = 5000
+	num_epochs = 100
 	lr = 0.01
 
 	print('--------------------Train Dataset-------------------------')
@@ -123,7 +123,7 @@ def train_gat_model(train_data, test_data,save_model=False):
 		loss.backward()
 		optimizer.step()
 
-		if (epoch + 1) % 50 == 0:
+		if (epoch + 1) % 10 == 0:
 			model.eval()
 			with torch.no_grad():
 				output = model(test_data).view(-1)

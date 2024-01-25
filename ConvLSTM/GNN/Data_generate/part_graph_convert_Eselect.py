@@ -215,7 +215,7 @@ def create_part_graph(user_dict, address_to_index, data):
 	# 恶意用户的数量
 	user_1_num_expect = 300
 	user_1_num = min(user_1_num_expect, len(user_category_1))
-	ratio = 10
+	ratio = 30
 	user_0_num = user_1_num * ratio
 
 	user_num = user_0_num + user_1_num
@@ -234,30 +234,31 @@ def create_part_graph(user_dict, address_to_index, data):
 	selected_nodes_indices = [address_to_index[user] for user in filtered_list]
 
 	# 2.搜索恶意节点的邻居
+	# 不添加恶意节点的邻居
 	# 预计算邻居节点字典
-	print('[Step 2 Find phisher neighbour nodes].....')
-	neighbor_dict = {}
-	for start, end in zip(*data.edge_index.tolist()):
-		if start not in neighbor_dict:
-			neighbor_dict[start] = set()
-		neighbor_dict[start].add(end)
-	dump_pkl('neighbor_dict.pkl', neighbor_dict)
-
-	# 找到他们的邻居节点索引
-	neighbour_nodes_indices = set()
-	for node_idx in tqdm(selected_nodes_indices, desc='Neighbour finding'):
-		neighbours = neighbor_dict.get(node_idx, set())
-		neighbour_nodes_indices.update(neighbours)
-	print(f'neighbours num {len(neighbour_nodes_indices)}')
+	# print('[Step 2 Find phisher neighbour nodes].....')
+	# neighbor_dict = {}
+	# for start, end in zip(*data.edge_index.tolist()):
+	# 	if start not in neighbor_dict:
+	# 		neighbor_dict[start] = set()
+	# 	neighbor_dict[start].add(end)
+	# dump_pkl('neighbor_dict.pkl', neighbor_dict)
+	#
+	# # 找到他们的邻居节点索引
+	# neighbour_nodes_indices = set()
+	# for node_idx in tqdm(selected_nodes_indices, desc='Neighbour finding'):
+	# 	neighbours = neighbor_dict.get(node_idx, set())
+	# 	neighbour_nodes_indices.update(neighbours)
+	# print(f'neighbours num {len(neighbour_nodes_indices)}')
 
 	# 节点索引转地址
-	print(f'unfiltered neighbours num {len(neighbour_nodes_indices)}')
-	for node_idx in neighbour_nodes_indices:
-		address = reverse_dict.get(node_idx)
-		# 过滤不符合条件的恶意节点邻居
-		if 1000 >= user_dict[address]['all_cnt'] >= 3:
-			filtered_list.add(address)
-	print(f'filtered neighbours num {len(filtered_list) - (user_1_num)}')
+	# print(f'unfiltered neighbours num {len(neighbour_nodes_indices)}')
+	# for node_idx in neighbour_nodes_indices:
+	# 	address = reverse_dict.get(node_idx)
+	# 	# 过滤不符合条件的恶意节点邻居
+	# 	if 1000 >= user_dict[address]['all_cnt'] >= 3:
+	# 		filtered_list.add(address)
+	# print(f'filtered neighbours num {len(filtered_list) - (user_1_num)}')
 
 	print(f'filtered_list num {len(filtered_list)}')
 

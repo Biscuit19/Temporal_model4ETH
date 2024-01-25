@@ -201,7 +201,7 @@ def create_part_graph(user_dict, address_to_index, data):
 		if details['category'] == 1 and 1000 >= details['all_cnt'] >= 3:
 			user_category_1.append(user)
 
-		if details['category'] == 0 and 1000 >= details['all_cnt'] >= 500:
+		if details['category'] == 0 and 1200 >= details['all_cnt'] >= 700:
 			user_category_0.append(user)
 
 	user_filterd = user_category_1 + user_category_0
@@ -212,9 +212,9 @@ def create_part_graph(user_dict, address_to_index, data):
 
 
 	# 恶意用户的数量
-	user_1_num_expect = 300
+	user_1_num_expect = 500
 	user_1_num = min(user_1_num_expect, len(user_category_1))
-	ratio = 0.8
+	ratio = 1
 	user_0_num = int(user_1_num * ratio)
 
 	user_num = user_0_num + user_1_num
@@ -261,7 +261,8 @@ def create_part_graph(user_dict, address_to_index, data):
 	for node_idx in neighbour_nodes_indices:
 		address = reverse_dict.get(node_idx)
 		# 不过滤
-		filtered_list.add(address)
+		if 1200 >= user_dict[address]['all_cnt'] >= 3:
+			filtered_list.add(address)
 
 	print(f'total num {len(filtered_list)}')
 

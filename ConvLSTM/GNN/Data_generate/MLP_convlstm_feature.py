@@ -99,16 +99,19 @@ def train_model(train_data):
             print(
                 f'Epoch [{epoch + 1}/{epochs}], Loss: {loss.item():.4f}, Accuracy: {accuracy:.4f}, Precision: {precision:.4f}, Recall: {recall:.4f}, F1: {f1:.4f}')
 
+    model_path = './MLP_model.pth'  # 指定保存的文件路径
+    torch.save(model.state_dict(), model_path)
+
 
 if __name__ == '__main__':
     # 训练模型
     train_data = read_pkl('mlp_data_all_feature.pkl')
     train_model(train_data)
 
-    train_data = read_pkl('mlp_data_embed.pkl')
-    train_model(train_data)
-
-    train_data = read_pkl('mlp_data_static.pkl')
-    train_model(train_data)
+    # train_data = read_pkl('mlp_data_embed.pkl')
+    # train_model(train_data)
+    #
+    # train_data = read_pkl('mlp_data_static.pkl')
+    # train_model(train_data)
 
 
