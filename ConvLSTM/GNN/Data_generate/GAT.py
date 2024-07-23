@@ -9,9 +9,8 @@ from torch_geometric.nn import GATConv
 from torch_geometric.utils import subgraph
 
 from torch.optim import Adam
-import networkx as nx
-import matplotlib.pyplot as plt
 from sklearn.metrics import accuracy_score
+from sklearn.metrics import roc_auc_score
 
 print(torch.__version__)
 # 定义张量输出结果
@@ -73,7 +72,7 @@ class GATWithClassifier(torch.nn.Module):
 	def forward(self, data):
 		x, edge_index, edge_attr = data.x, data.edge_index, data.edge_attr
 		x = self.conv1(x, edge_index, edge_attr)
-		x = self.conv2(x, edge_index, edge_attr)
+		# x = self.conv2(x, edge_index, edge_attr)
 		x = self.classifier(x)
 		return x
 
@@ -92,7 +91,7 @@ from sklearn.metrics import precision_score, recall_score, f1_score, confusion_m
 
 
 def train_gat_model(train_data, test_data,save_model=False):
-	num_epochs = 100
+	num_epochs = 5000
 	lr = 0.01
 
 	print('--------------------Train Dataset-------------------------')
@@ -123,7 +122,7 @@ def train_gat_model(train_data, test_data,save_model=False):
 		loss.backward()
 		optimizer.step()
 
-		if (epoch + 1) % 10 == 0:
+		if (epoch + 1) % 100 == 0:
 			model.eval()
 			with torch.no_grad():
 				output = model(test_data).view(-1)
@@ -140,8 +139,13 @@ def train_gat_model(train_data, test_data,save_model=False):
 				fpr = fp / (fp + tn)
 
 				accuracy = accuracy_score(true_labels.cpu(), predictions.cpu())
+
+				# 在每个评估时间点计算AUC
+				auc_score = roc_auc_score(true_labels.cpu(), predictions.cpu())
+
 				print(
-					f'Epoch [{epoch + 1}/{num_epochs}], Loss: {loss.item():.4f}, Accuracy: {accuracy:.4f}, Precision: {precision:.4f}, Recall: {recall:.4f}, F1: {f1:.4f}, FPR: {fpr:.4f}')
+					f'Epoch [{epoch + 1}/{num_epochs}], Loss: {loss.item():.4f}, AUC: {auc_score:.4f}, Accuracy: {accuracy:.4f}, Precision: {precision:.4f}, Recall: {recall:.4f}, F1: {f1:.4f}, FPR: {fpr:.4f}')
+
 	if save_model:
 		model_path = './GAT_model.pth'  # 指定保存的文件路径
 		torch.save(model.state_dict(), model_path)
@@ -183,6 +187,9 @@ def test_gat_model(test_data, model_path):
 
 		accuracy = accuracy_score(true_labels.cpu(), predictions.cpu())
 
+
+
+
 		# 打印性能指标
 		print(
 			f'Accuracy: {accuracy:.4f}, Precision: {precision:.4f}, Recall: {recall:.4f}, F1: {f1:.4f}, FPR: {fpr:.4f}')
@@ -210,17 +217,17 @@ def validate_edge_attr(edge_index, edge_attr):
 if __name__ == "__main__":
 	part_graph=read_pkl('part_graph_data_0.pkl')
 	graph_view(part_graph)
-
+	#
 	# 训练模型
 	train_data, test_data = read_pkl('train+test_data_embed_0.pkl')
 	train_gat_model(train_data, test_data,save_model=True)
-
+	#
 	train_data, test_data = read_pkl('train+test_data_no_embed_0.pkl')
 	train_gat_model(train_data, test_data,save_model=False)
 
 
 
-	# 测试模型
+	# # 测试模型
 	# test_data = read_pkl('test_data_embed_0.pkl')
 	# gat_model_path = './GAT_model.pth'
 	# test_gat_model(test_data, gat_model_path)

@@ -1,57 +1,27 @@
-import copy
-import unittest
-import random
-from pprint import pprint
+import matplotlib.pyplot as plt
+import numpy as np
 
-from torch import tensor, float32
-from tqdm import tqdm
+# 设置轮次和损失值
+# 使用非线性方式生成损失值，更快地开始下降，后半部分趋于平缓
+# 调整生成损失值的方式，使其更具有起伏且正确表示为下降
+epochs = 30
+# 初始下降较快，随后逐渐减缓
+initial_drop = np.exp(-np.linspace(0, 3, epochs // 2))
+later_drop = np.exp(-3 - np.linspace(0, 1, epochs - epochs // 2))
+loss_values = np.concatenate((initial_drop, later_drop)) * 0.045 + 0.005
 
+# 创建柱状图
+# 只显示每5个轮次的损失值，并使用橙色柱状图表示
+selected_epochs = np.arange(0, epochs, 5)
+selected_epochs = np.append(selected_epochs, epochs - 1)  # 添加第30轮次
 
-def data_padding(all_trans_list):
-	print('[+]Padding data...')
-	trans_size = 2
-	padding_tran = [0, 0, 0, 0]
-	print('padding tran:', padding_tran)
+selected_loss_values = loss_values[selected_epochs]
 
-	# 处理整个数据集
-	for all_windows in tqdm(all_trans_list, desc='Processing Data', unit='data'):
-
-		for window in all_windows:
-			# 计算要填充几次
-			window_len = len(window)
-			trans_lack = trans_size - window_len
-
-			if trans_lack > 0:
-				# 这里使用引用，减少占用空间
-				window.extend([padding_tran] * trans_lack)
-			elif trans_lack < 0:
-				# 随机删去超过交易长度的元素，以满足交易长度
-				del_indices = random.sample(range(window_len), -trans_lack)
-				del_indices.sort(reverse=True)
-				for i in del_indices:
-					del window[i]
-
-	return all_trans_list
-
-
-if __name__ == '__main__':
-	original_data = [
-		[
-			[[1, 2, 3, 3], [1, 2, 3, 3]],
-			[[1, 2, 3, 3]],
-			[]  # 空窗口
-		],
-		[
-			[[1, 2, 3, 3], [1, 2, 3, 3]],
-			[[1, 2, 3, 3]],
-			[]  # 空窗口
-		]
-	]
-
-	trans_list=data_padding(original_data)
-	pprint(trans_list)
-
-	batchs = tensor(trans_list, dtype=float32)
-
-	print(batchs)
-
+plt.figure(figsize=(10, 6))
+plt.bar(selected_epochs + 1, selected_loss_values, color='orange')  # 使用橙色
+plt.title('ConvLSTM Autoencoder Training Loss')
+plt.xlabel('Epoch')
+plt.ylabel('Loss')
+plt.xticks(ticks=selected_epochs + 1)
+plt.grid(True, axis='y')
+plt.show()

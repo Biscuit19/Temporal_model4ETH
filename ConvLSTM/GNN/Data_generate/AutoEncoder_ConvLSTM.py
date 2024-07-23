@@ -219,7 +219,7 @@ class AutoEncoder_ConvLSTM(nn.Module):
 		self.encoder = ConvLSTM(input_channels, hidden_channels, kernel_size, num_layers, batch_first, bias,
 								return_all_layers=True)
 		# 解码器
-		self.decoder = ConvLSTM(hidden_channels, input_channels, kernel_size, num_layers, batch_first, bias,
+		self.decodkernel_sizeer = ConvLSTM(hidden_channels, input_channels, kernel_size, num_layers, batch_first, bias,
 								return_all_layers)
 
 	# def forward(self, x):
